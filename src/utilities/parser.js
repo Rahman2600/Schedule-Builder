@@ -1,11 +1,15 @@
 import Time from './time';
 import TimeInterval from './time_interval';
+import Section from './section';
+import Course from './course';
 
-const parseData = sectionsData => {
+const parseCourseData = (courseName, sectionsData) => {
   let data = removeDuplicates(sectionsData);
-  let requiredFields = [ 'Section', 'Activity', 'Term', 'Days', 'Start Time', 'End Time'];
+  let requiredFields = ['Section', 'Activity', 'Term', 'Days', 'Start Time', 'End Time'];
   let processedData = filterOutSectionDataWithoutReqFields(data, requiredFields);
-  return apiFormatToProjectFormat(processedData);
+  let sections =  apiFormatToProjectFormat(processedData, courseName);
+  console.log(sections);
+  return new Course(courseName, sections);
 }
 
 const removeDuplicates = sectionsData => {
@@ -36,17 +40,17 @@ const filterOutSectionDataWithoutReqFields = (sectionsData, requiredFields) => {
   return processedData;
 }
 
-const apiFormatToProjectFormat = (sectionsData) => {
+const apiFormatToProjectFormat = (sectionsData, courseName) => {
   return sectionsData.map((sectionData) => {
     let days = sectionData['Days'].split(" ");
-    return {
+    return new Section({
       name: sectionData['Section'],
       status: sectionData['Status'],
       activity: sectionData['Activity'],
       term: sectionData['Term'],// 1, 2 or 1-2
       days: days,
       timeInterval: new TimeInterval(timeStringToTime(sectionData['Start Time']), timeStringToTime(sectionData['End Time']))
-    };
+    });
   }); 
 }
 
@@ -64,4 +68,4 @@ const timeStringToTime = timeString => {
     return t;
 }
 
-export default parseData;
+export default parseCourseData;

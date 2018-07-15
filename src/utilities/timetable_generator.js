@@ -1,28 +1,28 @@
-// @flow
 import TimetableWithAlternatives from './timetable_with_alternatives';
 import TimeSlot from './timeslot';
 
 const _ = require('lodash');
 
-const generateTimeTables = coursesData => {
-  if (coursesData.length === 0) return [];
-  let allCategories = getAllCategories(coursesData); 
-  let allGroupedCombinations = generateGroupedCombinations(allCategories);
-  let validCombinations = filterOutInvalidCombinations(allGroupedCombinations);
-  if (validCombinations.length === 0) return [];
-  let smallestGroupedCombination = getSmallestArray(validCombinations);
-  if (smallestGroupedCombination.length === 0) return [];
-  let mergedCombinations = mergeCombinations(smallestGroupedCombination);
-  let timetables = makeTimetables(mergedCombinations);
-  return timetables;
+const generateTimeTables = (courseManager) => {
+    let allCategories = getAllCategories(courseManager);
+    let allGroupedCombinations = generateGroupedCombinations(allCategories);
+    let validCombinations = filterOutInvalidCombinations(allGroupedCombinations);
+    if (validCombinations.length === 0) return [];
+    let smallestGroupedCombination = getSmallestArray(validCombinations);
+    if (smallestGroupedCombination.length === 0) return [];
+    let mergedCombinations = mergeCombinations(smallestGroupedCombination);
+    console.log(mergedCombinations);
+    let timetables = makeTimetables(mergedCombinations);
+    return timetables;
 }
 
 //returns an array of arrays of each of the categories we have to pick from to make a combination
-const getAllCategories = coursesData => {
+const getAllCategories = (courseManager) => {
   let allCategories = [];
-  for (let courseData of coursesData) {
-    let categories = getCategories(courseData);
-    allCategories.push(categories);
+  for (let course of courseManager) {
+    allCategories.push(
+      course.getSectionsGroupedByActivity().map(({sections}) => sections)
+    );
   }
   return _.flatten(allCategories);
 }
@@ -53,19 +53,6 @@ const mergeCombinations = groupedCombinations => {
       alternatives: alternatives
     };
   });
-}
-
-const getCategories = courseData => {
-  let categories = new Map();
-  for (let sectionData of courseData) {
-    let storedData = categories.get(sectionData.activity);
-    if (storedData) {
-      storedData.push(sectionData);
-    } else {
-      categories.set(sectionData.activity, [sectionData]);
-    }
-  }
-  return Array.from(categories.values());
 }
 
 const makeTimetables  = (mergedCombinations) => {
@@ -162,5 +149,3 @@ const swapLastWith = (index, arr) => {
 }
 
 export default generateTimeTables;
-
-
