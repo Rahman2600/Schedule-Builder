@@ -7,6 +7,20 @@ class Course {
         this.sections = sections;
     }
 
+    getAllActivities() {
+        let activities = [];
+        for (let section of this.sections) {
+            if (!activities.includes(section.activity)) {
+                activities.push(section.activity);
+            }
+        }
+        return activities;
+    }
+
+    getAllSectionNames() {
+        return this.sections.map(({name}) => name);
+    }
+
     getSectionsGroupedByActivity() {
         let groupsMap = new Map();
         for (let section of this.sections) {
@@ -18,6 +32,11 @@ class Course {
             }
         }
         return _mapToArrayOfObjects(groupsMap, "activity", "sections");
+    }
+
+    getSection(sectionName) {
+        let index = this.sections.map(({name}) => name).indexOf(sectionName);
+        return this.sections[index];
     }
 
 }

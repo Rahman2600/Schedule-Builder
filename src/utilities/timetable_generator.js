@@ -1,9 +1,9 @@
-import TimetableWithAlternatives from './timetable_with_alternatives';
+import TimetableWithAlternatives from './timetable_with_options';
 import TimeSlot from './timeslot';
 
 const _ = require('lodash');
 
-const generateTimeTables = (courseManager) => {
+const generateTimeTables = (courseManager, categoriesToMergeWith) => {
     let allCategories = getAllCategories(courseManager);
     let allGroupedCombinations = generateGroupedCombinations(allCategories);
     let validCombinations = filterOutInvalidCombinations(allGroupedCombinations);
@@ -11,7 +11,6 @@ const generateTimeTables = (courseManager) => {
     let smallestGroupedCombination = getSmallestArray(validCombinations);
     if (smallestGroupedCombination.length === 0) return [];
     let mergedCombinations = mergeCombinations(smallestGroupedCombination);
-    console.log(mergedCombinations);
     let timetables = makeTimetables(mergedCombinations);
     return timetables;
 }
@@ -44,13 +43,13 @@ const generateGroupedCombinations = (allCategories) => {
 const mergeCombinations = groupedCombinations => {
   return groupedCombinations.map((groupedCombination) => {
     let first = groupedCombination[0];
-    let staticEntries = first.slice(0, first.length - 1);
-    let alternatives = groupedCombination.map((combination) => {
+    let staticSections = first.slice(0, first.length - 1);
+    let alternativeSections = groupedCombination.map((combination) => {
       return combination[combination.length - 1];
     });
     return {
-      staticEntries: staticEntries,
-      alternatives: alternatives
+      staticSections: staticSections,
+      alternativeSections: alternativeSections
     };
   });
 }
@@ -90,13 +89,11 @@ const validateCombination = combination => {
 }
 
 const makeTimetable = mergedCombination => {
-  let timetable = new TimetableWithAlternatives();
-  for (let sectionData of mergedCombination.staticEntries) {
-    addNormalTimetableEntry(sectionData, timetable);
-  }
-  for (let sectionData of mergedCombination.alternatives) {
-    addAlternativeTimetableEntry(sectionData, timetable);
-  }
+  let staticSections = mergedCombination.staticSections;
+  let alternativeSections = mergedCombination.alternativeSections;
+  let staticEntries = getAllTimetableEntries(staticSections);
+  let alternativeEntries = getAllTimetableEntries(alternativeSections);
+  let timetable = new TimetableWithAlternatives(staticEntries, alternativeEntries);
   return timetable;
 }
 
@@ -108,22 +105,12 @@ const filterOutInvalidCombinations = (allGroupedCombinations) => {
   });
 }
 
-const addNormalTimetableEntry = (sectionData, timetable) => {
-  for (let day of sectionData.days) {
-    timetable.addEntry({
-      name: sectionData.name,
-      timeslot: new TimeSlot(day, sectionData.timeInterval)
-    });
-  }
-}
-
-const addAlternativeTimetableEntry = (sectionData, timetable) => {
-  for (let day of sectionData.days) {
-    timetable.addAlternativeEntry({
-      name: sectionData.name,
-      timeslot: new TimeSlot(day, sectionData.timeInterval)
-    });
-  }
+const getAllTimetableEntries = sections => {
+    return _.flatten(
+        sections.map((section) => {
+            return section.getAllTimetableEntries()
+        })
+    );
 }
 
 const getSmallestArray = (_2dArray) => {

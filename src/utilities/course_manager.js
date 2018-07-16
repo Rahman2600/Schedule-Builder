@@ -1,4 +1,5 @@
-//interface for courses
+import _ from 'lodash';
+
 class CourseManager {
     constructor() {
         this.courses = [];
@@ -15,6 +16,16 @@ class CourseManager {
 
     getAllCourseNames() {
         return this.courses.map((course) => course.name);
+    }
+
+    getAllCategories() {
+        let categories = [];
+        for (let course of this.courses) {
+            for (let activity of course.getAllActivities()) {
+                categories.push(course.name + " " + activity);
+            }
+        }
+        return categories;
     }
 
     getSection(sectionName) {

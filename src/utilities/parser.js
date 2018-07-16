@@ -8,7 +8,6 @@ const parseCourseData = (courseName, sectionsData) => {
   let requiredFields = ['Section', 'Activity', 'Term', 'Days', 'Start Time', 'End Time'];
   let processedData = filterOutSectionDataWithoutReqFields(data, requiredFields);
   let sections =  apiFormatToProjectFormat(processedData, courseName);
-  console.log(sections);
   return new Course(courseName, sections);
 }
 

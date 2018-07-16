@@ -1,4 +1,7 @@
 import React, { Component } from 'react';
+
+import CategoryList from './category_list';
+
 import generateTimetables from '../utilities/timetable_generator';
 import CourseManger from '../utilities/course_manager';
 import parseData from '../utilities/parser';
@@ -30,6 +33,7 @@ class App extends Component {
     return (
       <div>
         <TimetableViewer timetables={generateTimetables(this.courseManager)}/>
+        <CategoryList sectionNames={this.courseManager.getAllCategories()}/>
       </div>
     );
   }

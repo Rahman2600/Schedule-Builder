@@ -8,14 +8,18 @@ const MAX_TIME = new Time(21, 30);
 
 //represents timetable as timelines on different days
 export default class Timetable {
-    constructor() {
+    constructor(entries) {
         this.table = new Map();
-        for(let day of DAYS) {
+        this.entries = entries;
+        for (let day of DAYS) {
             this.table.set(day, new Timeline(MIN_TIME, MAX_TIME));
+        }
+        for (let entry of entries) {
+            this._addEntry(entry);
         }
     }
 
-    addEntry({name, timeslot}) {
+    _addEntry({name, timeslot}) {
         let timeline =  this.table.get(timeslot.day);
         timeline.addInterval({key: name, interval: timeslot.interval});
     }
