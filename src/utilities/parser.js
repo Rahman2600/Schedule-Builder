@@ -43,6 +43,7 @@ const apiFormatToProjectFormat = (sectionsData, courseName) => {
   return sectionsData.map((sectionData) => {
     let days = sectionData['Days'].split(" ");
     return new Section({
+      courseName: courseName,
       name: sectionData['Section'],
       status: sectionData['Status'],
       activity: sectionData['Activity'],

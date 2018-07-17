@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { Component } from 'react';
 
 export default function Dropdown(props) {
     return ( 
-        <select value={props.selected} onChange={props.onChange}> 
+        <select multiple={props.multiple} value={props.selected} onChange={props.onChange}> 
             {
                 props.options.map((option) => {
                     return (
@@ -13,5 +13,5 @@ export default function Dropdown(props) {
                 }) 
             }
         </select>
-    );
+    );  
 }

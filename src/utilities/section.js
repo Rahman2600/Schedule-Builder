@@ -2,7 +2,8 @@ import TimeSlot from './timeslot.js';
 
 class Section {
 
-    constructor ({name, days, term, timeInterval, activity}) {
+    constructor ({courseName, name, days, term, timeInterval, activity}) {
+        this.courseName = courseName;
         this.name = name;
         this.days = days;
         this.term = term;
@@ -10,7 +11,7 @@ class Section {
         this.activity = activity;
     }
 
-    getAllTimetableEntries () {
+    getTimetableEntries () {
         let entries = [];
         for (let day of this.days) {
             entries.push({
