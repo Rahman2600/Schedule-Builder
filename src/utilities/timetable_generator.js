@@ -1,18 +1,67 @@
-import TimetableWithAlternatives from './timetable_with_options';
-import TimeSlot from './timeslot';
+import Timetable from './timetable';
+import TimetableWithOptions from './timetable_with_options';
 
 const _ = require('lodash');
 
 const generateTimeTables = (courseManager, categoriesToMergeWith) => {
     let allCategories = getAllCategories(courseManager);
-    let allGroupedCombinations = generateGroupedCombinations(allCategories);
-    let validCombinations = filterOutInvalidCombinations(allGroupedCombinations);
-    if (validCombinations.length === 0) return [];
-    let smallestGroupedCombination = getSmallestArray(validCombinations);
-    if (smallestGroupedCombination.length === 0) return [];
-    let mergedCombinations = mergeCombinations(smallestGroupedCombination);
-    let timetables = makeTimetables(mergedCombinations);
+    let combinationsOfStaticCategories;
+    let combinationsOfAlternativeCategories;
+    if (!categoriesToMergeWith || categoriesToMergeWith.length === 0) {
+        combinationsOfStaticCategories = 
+        generateValidCombinations(getSections(allCategories));
+        combinationsOfAlternativeCategories = [];
+    } else if (categoriesToMergeWith === "all") {
+        combinationsOfStaticCategories = [];
+        combinationsOfAlternativeCategories = generateValidCombinations(getSections(allCategories));
+    } else {
+        let staticCategories = [];
+        let alternativeCategories = [];
+        for (let category of allCategories) {
+            if (!categoriesToMergeWith.includes(category.name)) {
+                staticCategories.push(category);
+            } else {
+                alternativeCategories.push(category);
+            }
+        }
+        combinationsOfStaticCategories = generateValidCombinations(getSections(staticCategories));
+        combinationsOfAlternativeCategories = generateValidCombinations(
+            getSections(alternativeCategories)
+        );
+    }
+    let timetables = getTimetables(combinationsOfStaticCategories, 
+        combinationsOfAlternativeCategories); 
     return timetables;
+}
+
+const getSections = (categories) => categories.map(({sections}) => sections)
+
+const getTimetables = (combinationsOfStaticCategories, combinationsOfAlternativeCategories) => {
+    let timetables;
+    if (combinationsOfAlternativeCategories.length === 0) {
+        timetables = combinationsOfStaticCategories.map((combination) => {
+            return new Timetable(combination);
+        });
+    }  else if (combinationsOfStaticCategories.length === 0) {
+        timetables = combinationsOfAlternativeCategories.map((combination) => {
+            return new TimetableWithOptions([], combination);
+        })
+    } else {
+        timetables = [];
+        for (let staticSections of combinationsOfStaticCategories) {
+            let alternativeCombinations = [];
+            for (let alternativeCombination of combinationsOfAlternativeCategories) {
+                if (validateCombination(staticSections.concat(alternativeCombination))) {
+                    alternativeCombinations.push(alternativeCombination);
+                }
+            }
+            //handle case where there is no vaild complete timetable
+            if (alternativeCombinations.length !== 0) {
+                timetables.push(new TimetableWithOptions(staticSections, alternativeCombinations));
+            }
+        }
+    } 
+    return timetables;  
 }
 
 //returns an array of arrays of each of the categories we have to pick from to make a combination
@@ -20,61 +69,36 @@ const getAllCategories = (courseManager) => {
   let allCategories = [];
   for (let course of courseManager) {
     allCategories.push(
-      course.getSectionsGroupedByActivity().map(({sections}) => sections)
+      course.getSectionsGroupedByActivity().map(({sections, activity}) => {
+          return {
+              name: course.name + " " + activity,
+              sections: sections
+          }
+        }
+      )
     );
   }
   return _.flatten(allCategories);
 }
 
-/* returns an array of combinations grouped by the section that is last in each of the combinations in 
-that category */
-const generateGroupedCombinations = (allCategories) => {
-  if (allCategories.length === 0) return [];
-  let groupedCombinations = [];
-  for (let i = 0; i < allCategories.length; i++) {
-    let nextArr = swapLastWith(i, allCategories);
-    let combinationsWithArr = [];
-    generateGroupedCombinationsHelper(nextArr, 0, [], combinationsWithArr, true);
-    groupedCombinations.push(combinationsWithArr);
-  }
-  return groupedCombinations;
+const generateValidCombinations = (allCategories) => {
+    let combinations = [];
+    generateValidCombinationsHelper(allCategories, 0, [], combinations);
+    return combinations;
 }
 
-const mergeCombinations = groupedCombinations => {
-  return groupedCombinations.map((groupedCombination) => {
-    let first = groupedCombination[0];
-    let staticSections = first.slice(0, first.length - 1);
-    let alternativeSections = groupedCombination.map((combination) => {
-      return combination[combination.length - 1];
-    });
-    return {
-      staticSections: staticSections,
-      alternativeSections: alternativeSections
-    };
-  });
-}
-
-const makeTimetables  = (mergedCombinations) => {
-  return mergedCombinations.map((mergedCombination) => {
-    return makeTimetable(mergedCombination);
-  });
-}
-
-const generateGroupedCombinationsHelper = (allCategories, index, currentArr, groupedCombinations, 
-firstOfIndex) => {
-  if (index === allCategories.length) {
-    if (firstOfIndex) {
-      groupedCombinations.push([]);
+const generateValidCombinationsHelper = (allCategories, index, currentArr, combinations) => {
+    if (index === allCategories.length) {
+        if (validateCombination(currentArr)) {
+            combinations.push(currentArr);
+        }
+    } else {
+        let currentCategory = allCategories[index];
+        for (let i = 0; i < currentCategory.length; i++) {
+            generateValidCombinationsHelper(allCategories, index + 1,
+            currentArr.slice().concat([currentCategory[i]]), combinations);
+        }
     }
-    groupedCombinations[groupedCombinations.length - 1].push(currentArr);
-  } else {
-      let currentCategory = allCategories[index];
-      for (let i = 0; i < currentCategory.length; i++) {
-        let firstOfIndex = (i === 0);
-        generateGroupedCombinationsHelper(allCategories, index + 1,
-        currentArr.slice().concat([currentCategory[i]]), groupedCombinations, firstOfIndex);
-      }
-  }
 }
 
 const validateCombination = combination => {
@@ -88,14 +112,7 @@ const validateCombination = combination => {
   return true;
 }
 
-const makeTimetable = mergedCombination => {
-  let staticSections = mergedCombination.staticSections;
-  let alternativeSections = mergedCombination.alternativeSections;
-  let staticEntries = getAllTimetableEntries(staticSections);
-  let alternativeEntries = getAllTimetableEntries(alternativeSections);
-  let timetable = new TimetableWithAlternatives(staticEntries, alternativeEntries);
-  return timetable;
-}
+
 
 const filterOutInvalidCombinations = (allGroupedCombinations) => {
   return allGroupedCombinations.map((groupedCombinations) => {

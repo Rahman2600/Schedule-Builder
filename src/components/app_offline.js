@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 
-import CheckList from'./check_list';
+import { CheckList, getUpdatedStateOnSelectChange } from './check_list';
 
-import generateTimetables from '../utilities/timetable_generator_beta';
+import generateTimetables from '../utilities/timetable_generator';
 import CourseManger from '../utilities/course_manager';
 import parseData from '../utilities/parser';
 import { CPSC_110_2018W, CPSC_121_2018W } from '../utilities/data'
@@ -27,22 +27,24 @@ class App extends Component {
     }
 
     this.state = { courseNames: [], 
-      checkList: this.courseManager.getAllCategories().map((category) => {
+      categorySelectionState : this.courseManager.getAllCategories().map((category) => {
         return {value: category, checked: false}
       }) };
-    this.onCheckStateChange = this.onCheckStateChange.bind(this);
+    this.onSelectedCategoriesChange = this.onSelectedCategoriesChange .bind(this);
     this.numberOfTimetableUpdates = 0;
   }
 
   render() {
-    let categoriesToMergeWith = this.state.checkList.filter((element) => {
+    let categoriesToMergeWith = this.state.categorySelectionState.filter((element) => {
       return element.checked;
     }).map(({value}) => value);
+
     let timetables = generateTimetables(this.courseManager, categoriesToMergeWith);
     let isViewingTimetablesWithOptions = false;
     if (timetables.length > 0) {
       isViewingTimetablesWithOptions = (timetables[0].constructor.name === "TimetableWithOptions");
     }
+    
     return (
       <div>
         <h1> TimetableViewer </h1>
@@ -52,23 +54,19 @@ class App extends Component {
           isViewingTimetablesWithOptions={isViewingTimetablesWithOptions}
         />
         <CheckList
-          list={this.state.checkList} 
-          onChange={this.onCheckStateChange}
+          list={this.state.categorySelectionState} 
+          onChange={this.onSelectedCategoriesChange}
         />
       </div>
     );
   }
 
-  onCheckStateChange(category) {
+  //fix coupling between use of checklist between this component and viewer
+  onSelectedCategoriesChange(category) {
     this.numberOfTimetableUpdates++;
     this.setState((prevState) => {
-      let copy = prevState.checkList.slice();
-      for (let element of copy) {
-        if (element.value === category) {
-          element.checked = !element.checked;
-        }
-      }
-      return copy;
+      return {categorySelectionState: 
+        getUpdatedStateOnSelectChange(category, prevState.categorySelectionState)}
     });
   }
 

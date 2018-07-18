@@ -1,6 +1,6 @@
 import React from 'react'
 
-export default function CheckList(props) {
+function CheckList(props) {
     return props.list.map((element) => {
         return (
         <div key={element.value}>
@@ -17,3 +17,16 @@ export default function CheckList(props) {
         );
     })
 }
+
+function getUpdatedStateOnSelectChange(category, checkList) {
+    let copy = checkList.slice();
+    for (let element of copy) {
+        if (element.value === category) {
+            element.checked = !element.checked;
+            break;
+        }
+    }
+    return copy;
+}
+
+export {CheckList, getUpdatedStateOnSelectChange};

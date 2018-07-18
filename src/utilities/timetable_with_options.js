@@ -1,24 +1,32 @@
 import Timetable from './timetable';
+import _ from 'lodash';
 
 //allows you to switch between alternatives
-export default class TimetableWithAlternatives extends Timetable {
-    constructor(staticEntries, alternativeEntries) {
-        super(staticEntries);
+export default class TimetableWithOptions extends Timetable {
+    constructor(staticSections, alternativeSectionCombination) {
+        super(staticSections);
+        this.alternativeSections = [];
         this.alternatives = new Map();
-        for (let entry of alternativeEntries) {
-            this._addAlternativeEntry(entry);
+        for (let combination of alternativeSectionCombination) {
+            this._addAlternativeSectionCombination(combination);
         }
     }
 
-    getAlternativeSections() {
+    getAlternativeSectionCombinations() {
         return Array.from(this.alternatives.keys());
     }
 
-    getTimetableWithSection(section) {
-        let timetable = new Timetable(this.entries);
-        for (let timeslot of this.alternatives.get(section)) {
-            timetable._addEntry({name: section, timeslot: timeslot});
-        }
+    getAlternativeSections() {
+        return this.alternativeSections;
+    }
+
+    numberOfAlternativeSections() {
+        return this.alternativeSections.length;
+    }
+
+    getTimetableWithSectionCombination(sectionCombination) {
+        let sections = this.sections.concat(Array.from(this.alternatives.get(sectionCombination)));
+        let timetable = new Timetable(sections);
         return timetable;
     }
 
@@ -31,16 +39,13 @@ export default class TimetableWithAlternatives extends Timetable {
         }
     }
 
-    
-    _addAlternativeEntry(entry) {
-        let name = entry.name;
-        let timeslot = entry.timeslot;
-        let storedData = this.alternatives.get(name);
-        if (storedData) {
-            storedData.push(timeslot);
-        } else {
-            this.alternatives.set(name, [timeslot]);
+    _addAlternativeSectionCombination(combination) {
+        let sectionNames = combination.map(({name}) => name)
+        for (let name of sectionNames) {
+            if (!this.alternativeSections.includes(name)) {
+                this.alternativeSections.push(name);
+            }
         }
+        this.alternatives.set(sectionNames.join(), combination)
     }
-
 }
