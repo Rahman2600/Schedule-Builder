@@ -18,15 +18,4 @@ function CheckList(props) {
     })
 }
 
-function getUpdatedStateOnSelectChange(category, checkList) {
-    let copy = checkList.slice();
-    for (let element of copy) {
-        if (element.value === category) {
-            element.checked = !element.checked;
-            break;
-        }
-    }
-    return copy;
-}
-
-export {CheckList, getUpdatedStateOnSelectChange};
+export default CheckList;

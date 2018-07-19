@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 
-import { CheckList, getUpdatedStateOnSelectChange } from './check_list';
+import CheckList from './check_list';
+import { getUpdatedStateOnSelectChange } from '../state/check_list_state';
 
 import generateTimetables from '../utilities/timetable_generator';
 import CourseManger from '../utilities/course_manager';
