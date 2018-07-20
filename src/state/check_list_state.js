@@ -1,5 +1,7 @@
 function getUpdatedStateOnSelectChange(category, checkList, atLeastOneMustBeSelected) {
-    let copy = checkList.slice();
+    let copy = checkList.map((element) => {
+        return Object.assign({}, element);
+    });
     for (let element of copy) {
         if (element.value === category) {
             if ((!atLeastOneMustBeSelected || !_onlyOneChecked(copy)) || 

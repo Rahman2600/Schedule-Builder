@@ -4,65 +4,68 @@ import TimetableWithOptions from './timetable_with_options';
 const _ = require('lodash');
 
 const generateTimeTables = (courseManager, categoriesToMergeWith) => {
+    if (!courseManager.hasCourses()) return [];
     let allCategories = getAllCategories(courseManager);
-    let combinationsOfStaticCategories;
-    let combinationsOfAlternativeCategories;
-    if (!categoriesToMergeWith || categoriesToMergeWith.length === 0) {
-        combinationsOfStaticCategories = 
-        generateValidCombinations(getSections(allCategories));
-        combinationsOfAlternativeCategories = [];
-    } else if (categoriesToMergeWith === "all") {
-        combinationsOfStaticCategories = [];
-        combinationsOfAlternativeCategories = generateValidCombinations(getSections(allCategories));
-    } else {
-        let staticCategories = [];
-        let alternativeCategories = [];
-        for (let category of allCategories) {
-            if (!categoriesToMergeWith.includes(category.name)) {
-                staticCategories.push(category);
-            } else {
-                alternativeCategories.push(category);
-            }
-        }
-        combinationsOfStaticCategories = generateValidCombinations(getSections(staticCategories));
-        combinationsOfAlternativeCategories = generateValidCombinations(
-            getSections(alternativeCategories)
-        );
-    }
-    let timetables = getTimetables(combinationsOfStaticCategories, 
-        combinationsOfAlternativeCategories); 
+    let timetables = getTimetables(allCategories, categoriesToMergeWith); 
     return timetables;
 }
 
-const getSections = (categories) => categories.map(({sections}) => sections)
-
-const getTimetables = (combinationsOfStaticCategories, combinationsOfAlternativeCategories) => {
+const getTimetables = (allCategories, categoriesToMergeWith) => {
     let timetables;
-    if (combinationsOfAlternativeCategories.length === 0) {
-        timetables = combinationsOfStaticCategories.map((combination) => {
+    if (!categoriesToMergeWith || categoriesToMergeWith.length === 0) {
+        let defaultCombinations = generateValidCombinations(getSections(allCategories));
+        timetables = defaultCombinations.map((combination) => {
             return new Timetable(combination);
         });
-    }  else if (combinationsOfStaticCategories.length === 0) {
-        timetables = combinationsOfAlternativeCategories.map((combination) => {
+    } else if (categoriesToMergeWith === "all") {
+        let alternativeCombinations = generateValidCombinations(getSections(allCategories));
+        timetables = alternativeCombinations.map((combination) => {
             return new TimetableWithOptions([], combination);
-        })
+        });
     } else {
-        timetables = [];
-        for (let staticSections of combinationsOfStaticCategories) {
-            let alternativeCombinations = [];
-            for (let alternativeCombination of combinationsOfAlternativeCategories) {
-                if (validateCombination(staticSections.concat(alternativeCombination))) {
-                    alternativeCombinations.push(alternativeCombination);
-                }
-            }
-            //handle case where there is no vaild complete timetable
-            if (alternativeCombinations.length !== 0) {
-                timetables.push(new TimetableWithOptions(staticSections, alternativeCombinations));
-            }
-        }
-    } 
+        timetables = handleDefaultAndAlternativeCombinationsNotEmptyCase(allCategories, categoriesToMergeWith);
+    }
     return timetables;  
 }
+
+const handleDefaultAndAlternativeCombinationsNotEmptyCase = (allCategories, categoriesToMergeWith) => {
+    let timetables = [];
+    let { staticCategories, alternativeCategories } = getStaticAndAlternativeCategories(allCategories, 
+        categoriesToMergeWith);
+    let defaultCombinations = generateValidCombinations(getSections(staticCategories));
+    let alternativeCombinations = generateValidCombinations(getSections(alternativeCategories));
+    for (let staticSections of defaultCombinations) {
+        let compatibleCombinations = [];
+        for (let alternativeCombination of alternativeCombinations) {
+            if (validateCombination(staticSections.concat(alternativeCombination))) {
+                compatibleCombinations.push(alternativeCombination);
+            }
+        }
+        //handle case where there is no vaild complete timetable
+        if (compatibleCombinations.length !== 0) {
+            timetables.push(new TimetableWithOptions(staticSections, compatibleCombinations));
+        }
+    }
+    return timetables;
+}
+
+const getStaticAndAlternativeCategories = (allCategories, categoriesToMergeWith) => {
+    let staticCategories = [];
+    let alternativeCategories = [];
+    for (let category of allCategories) {
+        if (!categoriesToMergeWith.includes(category.name)) {
+            staticCategories.push(category);
+        } else {
+            alternativeCategories.push(category);
+        }
+    }
+    return { 
+        staticCategories: staticCategories,
+        alternativeCategories: alternativeCategories
+    }
+}
+
+const getSections = (categories) => categories.map(({sections}) => sections)
 
 //returns an array of arrays of each of the categories we have to pick from to make a combination
 const getAllCategories = (courseManager) => {
@@ -112,44 +115,5 @@ const validateCombination = combination => {
   return true;
 }
 
-
-
-const filterOutInvalidCombinations = (allGroupedCombinations) => {
-  return allGroupedCombinations.map((groupedCombinations) => {
-    return groupedCombinations.map((groupedCombination) => {
-      return groupedCombination.filter(validateCombination);
-    }).filter((groupedCombination) => groupedCombination.length !== 0);
-  });
-}
-
-const getAllTimetableEntries = sections => {
-    return _.flatten(
-        sections.map((section) => {
-            return section.getAllTimetableEntries()
-        })
-    );
-}
-
-const getSmallestArray = (_2dArray) => {
-  let smallestArray;
-  let smallestLengthSoFar = Number.POSITIVE_INFINITY;
-  for (let array of _2dArray) {
-    if (array.length < smallestLengthSoFar) {
-      smallestArray = array;
-      smallestLengthSoFar = array.length;
-    }
-  }
-  return smallestArray;
-}
-
-const swapLastWith = (index, arr) => {
-  let copy = arr.slice();
-  let lastIndex = copy.length -  1;
-  let entryAtIndex = copy[index];
-  let lastEntry = copy[lastIndex];
-  copy[index] = lastEntry;
-  copy[lastIndex] = entryAtIndex;
-  return copy;
-}
 
 export default generateTimeTables;

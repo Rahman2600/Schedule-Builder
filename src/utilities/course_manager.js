@@ -14,6 +14,10 @@ class CourseManager {
         this.courses.splice(pos, pos + 1);
     }
 
+    hasCourses() {
+        return this.courses.length > 0;
+    }
+
     getAllCourseNames() {
         return this.courses.map((course) => course.name);
     }
