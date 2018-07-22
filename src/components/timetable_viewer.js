@@ -23,7 +23,6 @@ class TimetableViewer extends Component {
         this._getSelectedSectionCombinationWithState = this._getSelectedSectionCombinationWithState.bind(this);
         this._getAlternativeCombinationsInCurrentTimetable = this._getAlternativeCombinationsInCurrentTimetable.bind(this);
         this.onSectionsSelectedChange = this.onSectionsSelectedChange.bind(this);
-        this._updateStateWithSectionsCheckState = this._updateStateWithSectionsCheckState.bind(this);
     }
 
     static getDerivedStateFromProps(props, state) {
@@ -41,9 +40,9 @@ class TimetableViewer extends Component {
         let initalState = {};
         initalState.id = props.id;
         if (props.timetables) {
-            initalState.currentTimetableIndex = 0;
+            initalState.timetableIndex = 0;
             if (props.isViewingTimetablesWithOptions) {
-                initalState.currentSectionCombinationIndex = 0;
+                initalState.sectionCombinationIndex = 0;
                 initalState.expanded = false;
                 initalState.hideSectionsFromSelectedCategories = false;
                 let timetable = props.timetables[0];
@@ -61,6 +60,7 @@ class TimetableViewer extends Component {
 
     render() {
         let isViewingTimetablesWithOptions = this.props.isViewingTimetablesWithOptions;
+        let timetable = this._getTimetableToShow();
         if (this.props.timetables.length > 0) {
             return (
                 <div>                    
@@ -75,7 +75,7 @@ class TimetableViewer extends Component {
                      (isViewingTimetablesWithOptions ?
                                 this._getExpandButton() : null)
                     }
-                    <Timetable timetable={this._getTimetableToShow()} />
+                    <Timetable timetable={timetable} />
                     { this.props.isViewingTimetablesWithOptions ?
                         <div>
                             <Dropdown 
@@ -90,7 +90,7 @@ class TimetableViewer extends Component {
                         </div>
                         : null}
                     <p> 
-                        {this.state.currentTimetableIndex + 1} 
+                        {this.state.timetableIndex + 1} 
                         {' of '}
                         {this.props.timetables.length} </p>
                 </div>
@@ -142,94 +142,107 @@ class TimetableViewer extends Component {
     onChangeSectionCombination(event) {
         let selected = event.target.value;
         this.setState({ 
-            currentSectionCombinationIndex: 
-            this._getAlternativeCombinationsInCurrentTimetable().indexOf(selected),
+            sectionCombinationIndex: 
+            this._getOptionsToShowWithState().indexOf(selected),
             hideSectionsFromSelectedCategories: false});
     }
 
     onSectionsSelectedChange(category) {
         this.setState((prevState) => {
+            let nextSectionsCheckState = getUpdatedStateOnSelectChange(category, prevState.sectionsCheckState, true);
             let nextState = { sectionsCheckState: 
-                getUpdatedStateOnSelectChange(category, prevState.sectionsCheckState, true)}
+                nextSectionsCheckState}
             let prevSelected = this._getSelectedSectionCombinationWithState(prevState);
-            let state = {};
-            state.sectionsCheckState = nextState.sectionsCheckState;
-            state.currentTimetableIndex = this.state.currentTimetableIndex;
-            let newOptions = this._getOptionsToShowWithState(state);
+            let newOptions = this._getOptionsToShowWithState({
+                timetableIndex : prevState.timetableIndex,
+                sectionsCheckState: nextSectionsCheckState
+            });
             let pos = newOptions.indexOf(prevSelected);
             if (pos != - 1) {
-                nextState.currentSectionCombinationIndex = pos;
+                nextState.sectionCombinationIndex = pos;
             } else {
-                nextState.currentSectionCombinationIndex = 0;
+                nextState.sectionCombinationIndex = 0;
             }
             return nextState;
         });
     }
 
-    _getStateUpdatesWithPreviousClicked({expanded, currentTimetableIndex, 
-        currentSectionCombinationIndex}) {
+    //Put timetable index and sectionCombinationIndex in a class
+    _getStateUpdatesWithPreviousClicked(prevState) {
+        let expanded = prevState.expanded;
+        let timetableIndex = prevState.timetableIndex;
+        let sectionCombinationIndex = prevState.sectionCombinationIndex;
         let nextState = {};
-        if (expanded && (currentSectionCombinationIndex > 0)) {
-            nextState.currentSectionCombinationIndex = currentSectionCombinationIndex - 1;
-        } else if (expanded && currentSectionCombinationIndex === 0 &&
-                   (currentTimetableIndex > 0)) {
-            nextState.currentTimetableIndex = currentTimetableIndex - 1;
-            let num = this._getNumberOfOptionsToShowWithState(nextState);
-            nextState.currentSectionCombinationIndex = num - 1;
-        } else if (currentTimetableIndex > 0) {
-            nextState.currentTimetableIndex = currentTimetableIndex - 1;
+        if (expanded && (sectionCombinationIndex > 0)) {
+            nextState.sectionCombinationIndex = sectionCombinationIndex - 1;
+        } else if (expanded && sectionCombinationIndex === 0 &&
+                   (timetableIndex > 0)) {
+            let nextTimetableIndex = timetableIndex - 1;
+            let nextSectionsCheckState = this._getSectionsCheckStateWithState({
+                timetableIndex: nextTimetableIndex
+            });
+            let numOptionsInNextTimetable = this._getNumberOfOptionsToShowWithState({
+                timetableIndex: nextTimetableIndex,
+                sectionsCheckState: nextSectionsCheckState
+            });
+            nextState.timetableIndex = nextTimetableIndex;
+            nextState.sectionCombinationIndex = numOptionsInNextTimetable - 1;
+            nextState.sectionsCheckState = this._getSectionsCheckStateWithState(nextState);
+        } else if (timetableIndex > 0) {
+            nextState.timetableIndex = timetableIndex - 1;
+            nextState.sectionsCheckState = this._getSectionsCheckStateWithState(nextState);
         }
 
-        this._updateStateWithSectionsCheckState(nextState);
         return nextState;
     }
 
-    _getStateUpdatesWithNextClicked({expanded, currentTimetableIndex, 
-        currentSectionCombinationIndex}) {
+    _getStateUpdatesWithNextClicked({expanded, timetableIndex, 
+        sectionCombinationIndex}) {
         let nextState = {};
-        if (expanded && (currentSectionCombinationIndex < 
+        if (expanded && (sectionCombinationIndex < 
             this._getNumberOfOptionsToShowWithState() - 1)) {
-            nextState.currentSectionCombinationIndex = currentSectionCombinationIndex + 1;
-        } else if (expanded && currentTimetableIndex < this.props.timetables.length - 1) {
-            console.log("ran");
-            nextState.currentSectionCombinationIndex = 0;
-            nextState.currentTimetableIndex = currentTimetableIndex + 1;
-        } else if (currentTimetableIndex < this.props.timetables.length - 1) {
-            nextState.currentTimetableIndex = currentTimetableIndex + 1;
+            nextState.sectionCombinationIndex = sectionCombinationIndex + 1;
+        } else if (expanded && timetableIndex < this.props.timetables.length - 1) {
+            nextState.sectionCombinationIndex = 0;
+            nextState.timetableIndex = timetableIndex + 1;
+            nextState.sectionsCheckState = this._getSectionsCheckStateWithState(nextState);
+        } else if (timetableIndex < this.props.timetables.length - 1) {
+            nextState.timetableIndex = timetableIndex + 1;
+            nextState.sectionsCheckState = this._getSectionsCheckStateWithState(nextState);
         }
 
-        this._updateStateWithSectionsCheckState(nextState);
         return nextState;
     }
 
-    _updateStateWithSectionsCheckState(state) {
-        if (Number.isInteger(state.currentTimetableIndex) && this.props.isViewingTimetablesWithOptions) {
-            let timetable = this.props.timetables[state.currentTimetableIndex];
-            state.sectionsCheckState = TimetableViewer._getSectionCheckState(timetable);
+    _getSectionsCheckStateWithState(state) {
+        if (Number.isInteger(state.timetableIndex) && this.props.isViewingTimetablesWithOptions) {
+            let timetable = this.props.timetables[state.timetableIndex];
+            return TimetableViewer._getSectionCheckState(timetable);
         }
     }
 
     _getTimetableToShow() {
         let props = this.props;
         let state = this.state;
-        if (props.isViewingTimetablesWithOptions) {
-            let timetable = props.timetables[state.currentTimetableIndex];
+        console.log(state);
+        if (!props.isViewingTimetablesWithOptions || state.hideSectionsFromSelectedCategories) {
+            return props.timetables[state.timetableIndex];
+        }
+        else if (!state.hideSectionsFromSelectedCategories) {
+            let timetable = props.timetables[state.timetableIndex];
             if (!state.hideSectionsFromSelectedCategories) {
                 return timetable.getTimetableWithSectionCombination(
-                    this._getOptionsToShowWithState()[state.currentSectionCombinationIndex]
+                    this._getOptionsToShowWithState()[state.sectionCombinationIndex]
                 );
             } else {
                 return timetable;
             }
         }
-        else {
-            return props.timetables[state.currentTimetableIndex];
-        }
     }
 
     _getTimetableWithState(state) {
         let timetables = this.props.timetables; 
-        return state ? timetables[state.currentTimetableIndex] : timetables[this.state.currentTimetableIndex];
+        return state ? timetables[state.timetableIndex] : timetables[this.state.timetableIndex];
     }
 
     _getNumberOfOptionsToShowWithState(state) {
@@ -241,7 +254,7 @@ class TimetableViewer extends Component {
         let checkState = stateInFunc.sectionsCheckState;
         let sectionNames = checkState.map(({value}) => value);
         let checkList = checkState.map(({checked}) => checked);
-        let timetable = this.props.timetables[stateInFunc.currentTimetableIndex];
+        let timetable = this.props.timetables[stateInFunc.timetableIndex];
         let unfiltered = timetable.getAlternativeSectionCombinations();
         let options = unfiltered.filter((combination) => {
             let sections = combination.split(",");
@@ -257,8 +270,8 @@ class TimetableViewer extends Component {
     }
 
     _getSelectedSectionCombinationWithState(state) {
-        return state ? this._getOptionsToShowWithState(state)[state.currentSectionCombinationIndex] :
-        this._getOptionsToShowWithState()[this.state.currentSectionCombinationIndex];
+        return state ? this._getOptionsToShowWithState(state)[state.sectionCombinationIndex] :
+        this._getOptionsToShowWithState()[this.state.sectionCombinationIndex];
     }
 
     _getAlternativeCombinationsInCurrentTimetable() {
