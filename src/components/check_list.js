@@ -1,21 +1,27 @@
 import React from 'react'
 
 function CheckList(props) {
-    return props.list.map((element) => {
-        return (
-        <div key={element.value}>
-            <input 
-                type="checkbox" 
-                id={element.value}
-                key={element.value + "i"} 
-                value={element.value} 
-                checked={element.checked}
-                onChange={() => props.onChange(element.value)}
-            />
-            <label htmlFor={element.value} key={element.value + "l"} > {element.value} </label>
-        </div>
-        );
-    })
+    return (
+        <ul className="list-group">
+            {props.list.map((element) => {
+                return (
+                    <li className="list-group-item" key={element.value + "l"}>
+                        <div className="custom-control custom-checkbox">
+                            <label htmlFor={element.value}  > {element.value} </label>
+                            <input 
+                                type="checkbox" 
+                                id={element.value}
+                                key={element.value + "i"} 
+                                value={element.value} 
+                                checked={element.checked}
+                                onChange={() => props.onChange(element.value)}
+                            />
+                        </div>
+                    </li>
+                );
+            })}
+        </ul>
+    );
 }
 
 export default CheckList;

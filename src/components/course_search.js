@@ -11,16 +11,23 @@ class CourseSearch extends Component {
 
   render() {
     return (
-      <div>
+      <div className="input-group mb-2">
         <input
+          type="text"
+          className="form-control"
           value={this.state.term}
           onChange={this.onInputChange}
+          placeholder="Course name"
         />
-        <button
-          type="button"
-          onClick={this.onClickAdd}>
-          Add
-        </button>
+        <div className="input-group-append">
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={this.onClickAdd}
+          >
+            Add
+          </button>
+        </div>
       </div>
     );
   }
