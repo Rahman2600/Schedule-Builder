@@ -95,41 +95,34 @@ class FilterViewState {
   }
 
   toggleCourseInclusionState(courseName) {
-    let copy = _.cloneDeep(this);
+    let copy = this._clone();
     copy.filter.get(courseName).included = !copy.filter.get(courseName)
       .included;
     return copy;
   }
 
   toggleActivityInclusionState({ courseName, activity }) {
-    let copy = _.cloneDeep(this);
-    copy.filter
-      .get(courseName)
-      .subFilter.get(activity).included = !copy.filter
-      .get(courseName)
-      .subFilter.get(activity).included;
+    let copy = this._clone();
+    let filter = copy._getActivityInFilter({ courseName, activity });
+    filter.included = !filter.included;
     return copy;
   }
 
   toggleActivityView({ courseName, activity }) {
-    let copy = _.cloneDeep(this);
-    copy.filter
-      .get(courseName)
-      .subFilter.get(activity).inTimetableView = !copy.filter
-      .get(courseName)
-      .subFilter.get(activity).inTimetableView;
+    let copy = this._clone();
+    let filter = copy._getActivityInFilter({
+      courseName,
+      activity
+    });
+    filter.inTimetableView = !filter.inTimetableView;
     return copy;
   }
 
   toggleSectionInclusionState({ courseName, activity, sectionName }) {
-    let copy = _.cloneDeep(this);
-    let state = copy.filter
-      .get(courseName)
-      .subFilter.get(activity)
-      .subFilter.get(sectionName);
-    copy.filter
-      .get(courseName)
-      .subFilter.get(activity)
+    let copy = this._clone();
+    let state = copy._getSectionInFilter({ courseName, activity, sectionName });
+    copy
+      ._getActivityInFilter({ courseName, activity })
       .subFilter.set(sectionName, !state);
     return copy;
   }
@@ -147,22 +140,24 @@ class FilterViewState {
     }
     return pairs;
   }
+
+  _clone() {
+    return _.cloneDeep(this);
+  }
+
+  _getCourseInFilter(courseName) {
+    return this.filter.get(courseName);
+  }
+
+  _getActivityInFilter({ courseName, activity }) {
+    return this._getCourseInFilter(courseName).subFilter.get(activity);
+  }
+
+  _getSectionInFilter({ courseName, activity, sectionName }) {
+    return this._getActivityInFilter({ courseName, activity }).subFilter.get(
+      sectionName
+    );
+  }
 }
-
-//check draft.js for pattern to update editorState
-
-// isCourseActivityIncluded(courseActivityObj) {
-//   return this._getCourseActivityFilter(courseActivityObj).included;
-// }
-
-// isSectionIncluded({ courseName, activity, section }) {
-//   return this._getCourseActivityFilter({ courseName, activity }).getSection(
-//     section
-//   ).included;
-// }
-
-// isCourseIncluded(courseName) {
-//   return this._getCourseFilter(courseName).included;
-// }
 
 export default FilterViewState;
