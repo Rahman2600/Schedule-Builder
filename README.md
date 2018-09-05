@@ -11,6 +11,7 @@ Node 8.9.1 or higher
 ### Installing
 
 Run npm install to install all dependencies
+```
 Run npm start to start project in the web browser on the url printed in the command line
 
 
