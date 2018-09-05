@@ -4,11 +4,11 @@ Helps UBC students create good schedules by generating all possible combinations
 
 ## Getting Started
 
-## Prequisites
+### Prequisites
 
 Node 8.9.1 or higher
 
-## Installing
+### Installing
 
 Run npm install to install all dependencies
 Run npm start to start project in the web browser on the url printed in the command-line
