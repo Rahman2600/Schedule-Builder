@@ -6,7 +6,7 @@ Helps UBC students create their timetables more easily by generating all possibl
 
 Courses in UBC have multiple sections. These sections have classes at different times. Students take multiple courses, so creating a timetable involves checking to see which combination of different sections from different courses works for you. This web application makes this process easier by generating all possible combinations of sections from your different courses and displaying them in a timetable format, you can browse through the different timetables and find one that suits you.
 
-The number of possible timetables can be a lot up e.g. 1000 so to address this problem you can fix some courses to be sections you want while sections for other courses vary which results in less timetables. You can also select/unselect courses and select/unselect course sections.
+The number of possible timetables can be a lot (thousands) so to address this problem I made a feature so you can put some of the sections into a dropdown instead and with this you can look at multiple timetables on the same page and also focus on looking at sections in other courses which results in easier to browse timetables. You can also select/unselect courses and select/unselect course sections.
 
 
 ## Getting Started
