@@ -6,7 +6,7 @@ Courses in UBC have multiple sections. These sections have classes at different 
 
 The number of possible timetables can be a lot up e.g. 1000 so to address this problem you can fix some courses to be sections you want while sections for other courses vary which results in less timetables. You can also select and unselect courses.
 
-
+![app image]https://github.com/Rahman2600/Schedule-Builder/blob/master/src/imgs/app.jpg
 
 
 ## Getting Started
