@@ -1,6 +1,6 @@
 # UBC Schedule Builder
 
-Helps UBC students create their timetables more easily by generating all possible combinations of course sections in different courses and displaying the different combinations in a browseable list of timetables.
+Helps UBC students create their timetables more easily by generating all possible combinations of course sections in different courses and displaying the different combinations in a browsable list of timetables.
 
 ![app image](https://github.com/Rahman2600/Schedule-Builder/blob/master/imgs/app1.jpg)
 
