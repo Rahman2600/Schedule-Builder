@@ -1,6 +1,6 @@
 # UBC Schedule Builder
 
-Helps UBC students create good schedules by generating all possible combinations and more.
+Helps UBC students create good schedules by generating all possible combinations and displaying them in a timetable format.
 
 Courses in UBC have multiple sections. These sections have classes at different times. Students take multiple courses. Creating a timetable involves checking to see which combination of different sections from different courses works for you. This web application makes it easier by generating all possible combinations of sections from your different courses and displaying them in a timetable format, you can browse through the different timetables and find the one that suits you.
 
