@@ -55,50 +55,6 @@ function CourseList(props) {
                           <i class="fas fa-chevron-down" />
                         </a>
                         <span> {`${activity} sections`} </span>
-                        <span style={{ float: "right" }}>
-                          <div className="form-check form-check-inline">
-                            <input
-                              type="radio"
-                              id="viewOption1"
-                              name={courseName + activity}
-                              checked={inTimetableView}
-                              className="mr-1"
-                              onChange={() =>
-                                props.onViewOfActivityChange({
-                                  courseName,
-                                  activity
-                                })
-                              }
-                            />
-                            <label
-                              className="form-check-label"
-                              for="viewOption1"
-                            >
-                              T
-                            </label>
-                          </div>
-                          <div className="form-check form-check-inline">
-                            <input
-                              type="radio"
-                              id={"viewOption2"}
-                              name={courseName + activity}
-                              className="mr-1"
-                              checked={!inTimetableView}
-                              onChange={() =>
-                                props.onViewOfActivityChange({
-                                  courseName,
-                                  activity
-                                })
-                              }
-                            />
-                            <label
-                              className="form-check-label"
-                              for="viewOption2"
-                            >
-                              CCS
-                            </label>
-                          </div>
-                        </span>
                       </div>
                       <div
                         className="list-group collapse"
