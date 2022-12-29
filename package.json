@@ -14,7 +14,7 @@
     "popper.js": "^1.14.3",
     "react": "^16.4.1",
     "react-dom": "^16.4.1",
-    "react-scripts": "1.1.4",
+    "react-scripts": "5.0.1",
     "react-select": "^1.2.1"
   },
   "scripts": {
